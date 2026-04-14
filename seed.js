@@ -16,21 +16,7 @@ const SEED_USERS = [
     password: 'Admin@1414',
     role: 'admin',
     phone: '9876543210',
-  },
-  {
-    name: 'Amit Sharma',
-    email: 'citizen@demo.com',
-    password: 'demo123',
-    role: 'citizen',
-    phone: '9123456789',
-  },
-  {
-    name: 'Priya Nair',
-    email: 'priya@demo.com',
-    password: 'demo123',
-    role: 'citizen',
-    phone: '9234567890',
-  },
+  }
 ];
 
 async function seed() {
