@@ -1,0 +1,39 @@
+/* AdminDashboard.css */
+.admin-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.admin-lower-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.recent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  text-decoration: none;
+  transition: all var(--transition);
+}
+.recent-item:hover { border-color: var(--primary); background: rgba(99,102,241,0.05); }
+
+.category-bar { margin-bottom: 0.875rem; }
+.cat-label { display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
+.cat-progress-bg { height: 6px; background: var(--border); border-radius: var(--radius-full); overflow: hidden; }
+.cat-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: var(--radius-full);
+  transition: width 0.8s ease;
+}
+
+@media (max-width: 768px) {
+  .admin-lower-grid { grid-template-columns: 1fr; }
+  .admin-header-actions .btn { flex: 1; }
+}
