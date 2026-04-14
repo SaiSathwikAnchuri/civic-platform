@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -23,30 +23,32 @@ export default function App() {
   const { user } = useAuth();
 
   return (
-    <>
-      <Navbar />
-      <Routes>
-        {/* Public */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login"    element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LoginPage />} />
-        <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
+    <div className={`app-with-sidebar ${!user ? 'public' : ''}`}>
+      <Sidebar />
+      <div className={`main-content ${!user ? 'public' : ''}`}>
+        <Routes>
+          {/* Public */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login"    element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace /> : <LoginPage />} />
+          <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
 
-        {/* Citizen Protected */}
-        <Route path="/dashboard"    element={<ProtectedRoute><CitizenDashboard /></ProtectedRoute>} />
-        <Route path="/submit"       element={<ProtectedRoute><SubmitComplaint /></ProtectedRoute>} />
-        <Route path="/complaint/:id" element={<ProtectedRoute><ComplaintDetail /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-        <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          {/* Citizen Protected */}
+          <Route path="/dashboard"    element={<ProtectedRoute><CitizenDashboard /></ProtectedRoute>} />
+          <Route path="/submit"       element={<ProtectedRoute><SubmitComplaint /></ProtectedRoute>} />
+          <Route path="/complaint/:id" element={<ProtectedRoute><ComplaintDetail /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
-        {/* Admin Protected */}
-        <Route path="/admin"            element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/admin/complaints" element={<AdminRoute><AdminComplaints /></AdminRoute>} />
-        <Route path="/admin/complaint/:id" element={<AdminRoute><ComplaintDetail /></AdminRoute>} />
-        <Route path="/admin/analytics"  element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
-        <Route path="/admin/users"      element={<AdminRoute><AdminUsers /></AdminRoute>} />
+          {/* Admin Protected */}
+          <Route path="/admin"            element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/complaints" element={<AdminRoute><AdminComplaints /></AdminRoute>} />
+          <Route path="/admin/complaint/:id" element={<AdminRoute><ComplaintDetail /></AdminRoute>} />
+          <Route path="/admin/analytics"  element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
+          <Route path="/admin/users"      element={<AdminRoute><AdminUsers /></AdminRoute>} />
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </div>
+    </div>
   );
 }

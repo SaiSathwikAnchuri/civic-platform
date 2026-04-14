@@ -17,6 +17,7 @@ export default function SubmitComplaint() {
   const [coords, setCoords]     = useState({ lat: null, lng: null });
   const [errors, setErrors]     = useState({});
   const [loading, setLoading]   = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
   const [step, setStep]         = useState(1); // 1=details, 2=location+photos
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -37,6 +38,38 @@ export default function SubmitComplaint() {
   const onChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setErrors((er) => ({ ...er, [e.target.name]: '' }));
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      setCoords({ lat, lng });
+      
+      try {
+        // Reverse Geocoding via OpenStreetMap (Nominatim)
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        if (data && data.display_name) {
+          setForm((f) => ({ ...f, address: data.display_name, city: data.address?.city || data.address?.town || '' }));
+          toast.success('Location & Address auto-detected! 📍');
+        } else {
+          toast.success('Exact coordinates captured! 📍');
+        }
+      } catch (err) {
+        toast.success('Coordinates captured, please enter address manually.');
+      } finally {
+        setGpsLoading(false);
+      }
+    }, () => {
+      toast.error('Unable to retrieve your location');
+      setGpsLoading(false);
+    });
   };
 
   const validateStep1 = () => {
@@ -145,6 +178,12 @@ export default function SubmitComplaint() {
             {/* Step 2: Location & Photos */}
             {step === 2 && (
               <form onSubmit={handleSubmit} className="sc-step-content fade-in">
+                <div className="form-group" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={detectLocation} disabled={gpsLoading}>
+                    {gpsLoading ? '⏳ Detecting GPS...' : '📍 Use My Current Location'}
+                  </button>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Street Address <span className="required">*</span></label>
                   <input name="address" className={`form-input ${errors.address ? 'error' : ''}`} placeholder="e.g. Near MG Road Signal, Bengaluru" value={form.address} onChange={onChange} />

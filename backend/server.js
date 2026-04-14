@@ -10,15 +10,37 @@ dotenv.config();
 
 const connectDB = require('./config/db');
 const { initSocket } = require('./socket/socketManager');
+const User = require('./models/User'); // Required for auto-init
+const bcrypt = require('bcryptjs');
+
+// Auto-initialize Default Admin from .env if missing
+const initAdmin = async () => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@demo.com';
+    const adminExists = await User.findOne({ email: adminEmail });
+    if (!adminExists) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', salt);
+      await User.create({
+        name: process.env.ADMIN_NAME || 'System Admin',
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'admin',
+        isActive: true,
+      });
+      console.log(`✅ Default Admin Initialized: ${adminEmail}`);
+    }
+  } catch (err) { console.error('Admin Init Failed', err); }
+};
+
+// Connect to MongoDB
+connectDB().then(() => initAdmin());
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-
-// Connect to MongoDB
-connectDB();
 
 const app = express();
 const server = http.createServer(app);
@@ -46,9 +68,11 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body Parsing
+// Body Parsing & Static Files
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Logging (only in development)
 if (process.env.NODE_ENV !== 'production') {

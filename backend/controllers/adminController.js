@@ -1,7 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const Complaint = require('../models/Complaint');
 const User = require('../models/User');
-const { uploadToCloudinary } = require('../utils/cloudinaryHelper');
 const { createNotification } = require('../utils/notificationHelper');
 const { getIO } = require('../socket/socketManager');
 
@@ -76,6 +75,30 @@ const updateComplaintStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Status updated', data: complaint });
 });
 
+// @desc    Update complaint priority
+// @route   PUT /api/admin/complaints/:id/priority
+// @access  Private (admin)
+const updateComplaintPriority = asyncHandler(async (req, res) => {
+  const { priority, note } = req.body;
+  const validPriorities = ['Low', 'Medium', 'High', 'Critical'];
+  if (!validPriorities.includes(priority)) {
+    return res.status(400).json({ success: false, message: 'Invalid priority' });
+  }
+
+  const complaint = await Complaint.findById(req.params.id);
+  if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found' });
+
+  complaint.priority = priority;
+  
+  if (note) {
+    if (!complaint.adminNotes) complaint.adminNotes = '';
+    complaint.adminNotes += `\n[Priority Change]: ${note}`;
+  }
+
+  await complaint.save();
+  res.json({ success: true, message: 'Priority updated', data: complaint });
+});
+
 // @desc    Assign complaint to department
 // @route   PUT /api/admin/complaints/:id/assign
 // @access  Private (admin)
@@ -119,10 +142,9 @@ const uploadResolutionProof = asyncHandler(async (req, res) => {
   const complaint = await Complaint.findById(req.params.id);
   if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found' });
 
-  const uploadPromises = req.files.map((f) => uploadToCloudinary(f.buffer, 'resolution-proofs'));
-  const proofs = await Promise.all(uploadPromises);
+  const proofs = req.files.map((f) => ({ url: `/uploads/${f.filename}`, publicId: f.filename }));
 
-  complaint.resolutionProof.push(...proofs.map((p) => ({ url: p.url, publicId: p.publicId })));
+  complaint.resolutionProof.push(...proofs);
   if (req.body.note) complaint.resolutionNote = req.body.note;
   await complaint.save();
 
@@ -201,6 +223,7 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
 module.exports = {
   getAllComplaints,
   updateComplaintStatus,
+  updateComplaintPriority,
   assignComplaint,
   uploadResolutionProof,
   getAnalytics,

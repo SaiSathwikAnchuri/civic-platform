@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getComplaintById, upvoteComplaint } from '../api/complaintAPI';
-import { updateStatus, assignDepartment, uploadProof } from '../api/adminAPI';
+import { updateStatus, updatePriority, assignDepartment, uploadProof } from '../api/adminAPI';
 import { useAuth } from '../context/AuthContext';
 import LocationMap from '../components/LocationMap';
 import Loader from '../components/Loader';
@@ -24,6 +24,7 @@ export default function ComplaintDetail() {
 
   // Admin states
   const [newStatus, setNewStatus]       = useState('');
+  const [newPriority, setNewPriority]   = useState('');
   const [statusNote, setStatusNote]     = useState('');
   const [department, setDepartment]     = useState('');
   const [proofFiles, setProofFiles]     = useState([]);
@@ -37,6 +38,7 @@ export default function ComplaintDetail() {
         const { data } = await getComplaintById(id);
         setComplaint(data.data);
         setNewStatus(data.data.status);
+        setNewPriority(data.data.priority);
         if (data.data.assignedTo?.department) setDepartment(data.data.assignedTo.department);
       } catch { toast.error('Complaint not found'); navigate(-1); }
       finally { setLoading(false); }
@@ -62,6 +64,16 @@ export default function ComplaintDetail() {
       setStatusNote('');
       toast.success('Status updated!');
     } catch { toast.error('Update failed'); }
+    finally { setActionLoading(false); }
+  };
+
+  const handlePriorityUpdate = async () => {
+    setActionLoading(true);
+    try {
+      const { data } = await updatePriority(id, { priority: newPriority });
+      setComplaint(data.data);
+      toast.success('Priority updated!');
+    } catch { toast.error('Priority update failed'); }
     finally { setActionLoading(false); }
   };
 
@@ -193,62 +205,82 @@ export default function ComplaintDetail() {
           {/* RIGHT: Admin Panel */}
           {isAdmin && (
             <div className="cd-sidebar">
-              {/* Update Status */}
               <div className="card">
-                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>🔄 Update Status</h4>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                  <select className="form-select" value={newStatus} onChange={e => setNewStatus(e.target.value)}>
-                    {['Pending', 'In Progress', 'Resolved', 'Rejected'].map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                  <textarea className="form-textarea" rows={3} placeholder="Add a note (optional)…" value={statusNote} onChange={e => setStatusNote(e.target.value)} />
-                </div>
-                <button className="btn btn-primary btn-full" onClick={handleStatusUpdate} disabled={actionLoading}>
-                  {actionLoading ? 'Updating…' : 'Update Status'}
-                </button>
-              </div>
-
-              {/* Assign Department */}
-              <div className="card">
-                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>🏢 Assign Department</h4>
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                  <select className="form-select" value={department} onChange={e => setDepartment(e.target.value)}>
-                    <option value="">Select department…</option>
-                    {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-                  </select>
-                </div>
-                <button className="btn btn-primary btn-full" onClick={handleAssign} disabled={actionLoading}>
-                  Assign
-                </button>
-              </div>
-
-              {/* Upload Resolution Proof */}
-              <div className="card">
-                <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>📎 Upload Resolution Proof</h4>
-                <form onSubmit={handleProofUpload}>
-                  <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <input type="file" accept="image/*" multiple onChange={e => setProofFiles(Array.from(e.target.files))} className="form-input" style={{ padding: '0.45rem' }} />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                    <input type="text" className="form-input" placeholder="Resolution note…" value={proofNote} onChange={e => setProofNote(e.target.value)} />
-                  </div>
-                  <button type="submit" className="btn btn-success btn-full" disabled={actionLoading}>
-                    {actionLoading ? 'Uploading…' : 'Upload Proof'}
-                  </button>
-                </form>
-              </div>
-
-              {/* Citizen info */}
-              <div className="card">
-                <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.875rem' }}>👤 Citizen Info</h4>
-                <div className="cd-citizen-info">
-                  <div className="avatar avatar-lg">{complaint.citizen?.name?.charAt(0).toUpperCase()}</div>
+                <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', fontWeight: 700 }}>⚙️ Admin Actions</h3>
+                
+                {/* Citizen info */}
+                <div className="cd-citizen-info" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
+                  <div className="avatar">{complaint.citizen?.name?.charAt(0).toUpperCase()}</div>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>{complaint.citizen?.name}</strong>
-                    <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>{complaint.citizen?.email}</p>
-                    {complaint.citizen?.phone && <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>{complaint.citizen?.phone}</p>}
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>{complaint.citizen?.name}</strong>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{complaint.citizen?.email}</p>
+                    {complaint.citizen?.phone && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{complaint.citizen?.phone}</p>}
                   </div>
+                </div>
+
+                {/* Update Status */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>Update Status</h4>
+                  <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                    <select className="form-select" value={newStatus} onChange={e => setNewStatus(e.target.value)}>
+                      {['Pending', 'In Progress', 'Resolved', 'Rejected'].map(s => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <textarea className="form-textarea" rows={2} placeholder="Add a note (optional)…" value={statusNote} onChange={e => setStatusNote(e.target.value)} />
+                  </div>
+                  <button className="btn btn-primary btn-full" onClick={handleStatusUpdate} disabled={actionLoading}>
+                    {actionLoading ? 'Updating…' : 'Update Status'}
+                  </button>
+                </div>
+
+                <hr className="divider" style={{ margin: '1.5rem 0' }} />
+
+                {/* Update Priority */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>Update Priority</h4>
+                  <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <select className="form-select" value={newPriority} onChange={e => setNewPriority(e.target.value)}>
+                      {['Low', 'Medium', 'High', 'Critical'].map(p => <option key={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <button className="btn btn-secondary btn-full" onClick={handlePriorityUpdate} disabled={actionLoading}>
+                    Update Priority
+                  </button>
+                </div>
+
+                <hr className="divider" style={{ margin: '1.5rem 0' }} />
+
+                {/* Assign Department */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>Assign Department</h4>
+                  <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                    <select className="form-select" value={department} onChange={e => setDepartment(e.target.value)}>
+                      <option value="">Select department…</option>
+                      {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <button className="btn btn-secondary btn-full" onClick={handleAssign} disabled={actionLoading}>
+                    Assign
+                  </button>
+                </div>
+
+                <hr className="divider" style={{ margin: '1.5rem 0' }} />
+
+                {/* Upload Resolution Proof */}
+                <div>
+                  <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>Upload Resolution Proof</h4>
+                  <form onSubmit={handleProofUpload}>
+                    <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                      <input type="file" accept="image/*" multiple onChange={e => setProofFiles(Array.from(e.target.files))} className="form-input" style={{ padding: '0.45rem' }} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                      <input type="text" className="form-input" placeholder="Resolution note…" value={proofNote} onChange={e => setProofNote(e.target.value)} />
+                    </div>
+                    <button type="submit" className="btn btn-success btn-full" disabled={actionLoading}>
+                      {actionLoading ? 'Uploading…' : 'Upload Proof'}
+                    </button>
+                  </form>
                 </div>
               </div>
             </div>

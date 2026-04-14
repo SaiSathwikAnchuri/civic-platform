@@ -81,17 +81,6 @@ export default function LoginPage() {
           Don't have an account? <Link to="/register">Create one →</Link>
         </p>
 
-        <div className="auth-demo">
-          <p>Demo credentials:</p>
-          <div className="demo-accounts">
-            <div onClick={() => setForm({ email: 'citizen@demo.com', password: 'demo123' })}>
-              👤 Citizen: citizen@demo.com / demo123
-            </div>
-            <div onClick={() => setForm({ email: 'sathwikpp14@gmail.com', password: 'Admin@1414' })}>
-              🛡️ Admin: sathwikpp14@gmail.com / Admin@1414
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

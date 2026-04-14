@@ -2,6 +2,7 @@ const express = require('express');
 const {
   getAllComplaints,
   updateComplaintStatus,
+  updateComplaintPriority,
   assignComplaint,
   uploadResolutionProof,
   getAnalytics,
@@ -18,6 +19,7 @@ router.use(protect, adminOnly);
 // Complaint management
 router.get('/complaints', getAllComplaints);
 router.put('/complaints/:id/status', updateComplaintStatus);
+router.put('/complaints/:id/priority', updateComplaintPriority);
 router.put('/complaints/:id/assign', assignComplaint);
 router.post('/complaints/:id/proof', upload.array('proofs', 3), uploadResolutionProof);
 

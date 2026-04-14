@@ -1,6 +1,5 @@
 const asyncHandler = require('express-async-handler');
 const Complaint = require('../models/Complaint');
-const { uploadToCloudinary } = require('../utils/cloudinaryHelper');
 const { autoAssignPriority, detectDuplicate } = require('../utils/priorityEngine');
 const { createNotification } = require('../utils/notificationHelper');
 const { getIO } = require('../socket/socketManager');
@@ -11,11 +10,13 @@ const { getIO } = require('../socket/socketManager');
 const submitComplaint = asyncHandler(async (req, res) => {
   const { title, description, category, address, city, pincode, lat, lng } = req.body;
 
-  // Upload images to Cloudinary
+  // Store local image URLs
   let images = [];
   if (req.files && req.files.length > 0) {
-    const uploadPromises = req.files.map((f) => uploadToCloudinary(f.buffer, 'complaints'));
-    images = await Promise.all(uploadPromises);
+    images = req.files.map((file) => ({
+      url: `/uploads/${file.filename}`,
+      publicId: file.filename
+    }));
   }
 
   // Auto-assign priority
