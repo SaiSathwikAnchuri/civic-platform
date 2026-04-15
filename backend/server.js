@@ -48,13 +48,17 @@ const server = http.createServer(app);
 // Init Socket.io
 initSocket(server);
 
-// Security Middleware
-app.use(helmet());
+// Allow uploaded images to be rendered by the frontend when served from a dev proxy or separate origin.
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use(cors({
   origin: [
     process.env.CLIENT_URL || 'http://127.0.0.1:5173',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
     'http://localhost:3000',
   ],
   credentials: true,

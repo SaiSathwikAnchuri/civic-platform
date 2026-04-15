@@ -7,6 +7,7 @@ import LocationMap from '../components/LocationMap';
 import Loader from '../components/Loader';
 import { formatDistanceToNow, format } from 'date-fns';
 import toast from 'react-hot-toast';
+import { getAssetUrl } from '../utils/assetUrl';
 import './ComplaintDetail.css';
 
 const STATUS_CLASS = { Pending:'badge-pending', 'In Progress':'badge-progress', Resolved:'badge-resolved', Rejected:'badge-rejected' };
@@ -144,7 +145,13 @@ export default function ComplaintDetail() {
                 <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.875rem' }}>📸 Photos ({complaint.images.length})</h4>
                 <div className="cd-images">
                   {complaint.images.map((img, i) => (
-                    <img key={i} src={img.url} alt={`complaint-${i}`} className="cd-img" onClick={() => setLightbox(img.url)} />
+                    <img
+                      key={i}
+                      src={getAssetUrl(img.url)}
+                      alt={`complaint-${i}`}
+                      className="cd-img"
+                      onClick={() => setLightbox(getAssetUrl(img.url))}
+                    />
                   ))}
                 </div>
               </div>
@@ -187,7 +194,13 @@ export default function ComplaintDetail() {
                 <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.875rem' }}>✅ Resolution Proof</h4>
                 <div className="cd-images">
                   {complaint.resolutionProof.map((p, i) => (
-                    <img key={i} src={p.url} alt={`proof-${i}`} className="cd-img" onClick={() => setLightbox(p.url)} />
+                    <img
+                      key={i}
+                      src={getAssetUrl(p.url)}
+                      alt={`proof-${i}`}
+                      className="cd-img"
+                      onClick={() => setLightbox(getAssetUrl(p.url))}
+                    />
                   ))}
                 </div>
                 {complaint.resolutionNote && <p style={{ marginTop: '0.75rem', color: 'var(--text-secondary)' }}>{complaint.resolutionNote}</p>}

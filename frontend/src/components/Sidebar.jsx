@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { APP_NAME } from '../config/brand';
 import './Sidebar.css';
 
 const NAV_LINKS_CITIZEN = [
@@ -30,8 +31,8 @@ export default function Sidebar() {
     return (
       <nav className="public-navbar">
         <Link to="/" className="sidebar-brand">
-          <span className="brand-icon">🏙️</span>
-          <span>CivicFix</span>
+          <span className="brand-icon">🏛️</span>
+          <span>{APP_NAME}</span>
         </Link>
         <div className="public-actions">
           <Link to="/login" className="btn btn-secondary btn-sm">Login</Link>
@@ -52,8 +53,8 @@ export default function Sidebar() {
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <Link to={isAdmin ? '/admin' : '/dashboard'} className="sidebar-brand" onClick={() => setMobileOpen(false)}>
-            <span className="brand-icon">🏙️</span>
-            <span>CivicFix</span>
+            <span className="brand-icon">🏛️</span>
+            <span>{APP_NAME}</span>
             {isAdmin && <span className="admin-tag">ADMIN</span>}
           </Link>
         </div>
@@ -85,7 +86,7 @@ export default function Sidebar() {
               <small>{user.role}</small>
             </div>
           </Link>
-          
+
           <button className="sidebar-logout" onClick={() => { setMobileOpen(false); logout(); navigate('/'); }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
@@ -94,8 +95,7 @@ export default function Sidebar() {
           </button>
         </div>
       </aside>
-      
-      {/* Mobile overlay */}
+
       {mobileOpen && <div className="sidebar-overlay" onClick={() => setMobileOpen(false)} />}
     </>
   );

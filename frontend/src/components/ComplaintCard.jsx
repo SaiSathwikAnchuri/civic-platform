@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { getAssetUrl } from '../utils/assetUrl';
 
 const STATUS_CLASS = {
   Pending:    'badge-pending',
@@ -55,7 +56,7 @@ export default function ComplaintCard({ complaint, isAdmin = false }) {
       {complaint.images?.length > 0 && (
         <div className="cc-images">
           {complaint.images.slice(0, 3).map((img, i) => (
-            <img key={i} src={img.url} alt="complaint" className="img-thumb" />
+            <img key={i} src={getAssetUrl(img.url)} alt="complaint" className="img-thumb" />
           ))}
           {complaint.images.length > 3 && (
             <div className="img-more">+{complaint.images.length - 3}</div>
